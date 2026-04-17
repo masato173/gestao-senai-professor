@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Salas SENAI</title>
+  <meta name="description" content="Web app para consulta de turmas, datas e salas do SENAI.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --bg-1:#07111f;
+  --bg-2:#0d172a;
+  --panel:rgba(15,23,42,.78);
+  --panel-strong:rgba(15,23,42,.92);
+  --panel-soft:rgba(255,255,255,.04);
+  --stroke:rgba(255,255,255,.08);
+  --stroke-strong:rgba(255,255,255,.14);
+  --text:#f8fbff;
+  --muted:#9aa8c7;
+  --muted-2:#71809f;
+  --primary:#3b82f6;
+  --primary-2:#06b6d4;
+  --success:#22c55e;
+  --success-bg:rgba(34,197,94,.15);
+  --info-bg:rgba(59,130,246,.16);
+  --danger:#ef4444;
+  --shadow:0 20px 60px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{
+  font-family:"Inter","Segoe UI",Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(59,130,246,.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(6,182,212,.15), transparent 24%),
+    linear-gradient(135deg,var(--bg-1),var(--bg-2));
+  padding:28px;
+}
+.wrap{max-width:1440px;margin:0 auto;padding:8px 0 24px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.header{position:relative;overflow:hidden;margin-bottom:22px;padding:28px;border-radius:28px;border:1px solid var(--stroke);background:linear-gradient(135deg, rgba(59,130,246,.18), rgba(6,182,212,.10)),var(--panel);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:var(--shadow)}
+.header::before{content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,.18), transparent 70%);pointer-events:none}
+.title{font-size:clamp(28px,4vw,40px);font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:8px}
+.subtitle{font-size:15px;color:var(--muted);line-height:1.5}
+.upload-area{border:1px dashed rgba(255,255,255,.16);border-radius:22px;padding:24px 20px;text-align:center;margin-bottom:20px;cursor:pointer;transition:.25s ease;background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:var(--shadow)}
+.upload-area:hover{transform:translateY(-2px);border-color:rgba(59,130,246,.55);background:linear-gradient(135deg, rgba(59,130,246,.08), rgba(6,182,212,.08)),var(--panel)}
+.upload-area input{display:none}
+.upload-btn{font-size:17px;font-weight:800;color:#fff;margin-bottom:6px}
+.upload-label{font-size:13px;color:var(--muted);line-height:1.45}
+.search-bar{display:grid;grid-template-columns:1.4fr 1fr auto auto;gap:14px;margin-bottom:20px}
+.search-bar input,.search-bar select{width:100%;min-width:0;min-height:50px;padding:14px 16px;border:1px solid var(--stroke);border-radius:16px;background:rgba(255,255,255,.04);color:var(--text);font-size:14px;outline:none;transition:.2s ease;backdrop-filter:blur(8px)}
+.search-bar input::placeholder{color:var(--muted-2)}
+.search-bar input:focus,.search-bar select:focus{border-color:rgba(59,130,246,.65);box-shadow:0 0 0 4px rgba(59,130,246,.14);background:rgba(255,255,255,.06)}
+.today-btn,.clear-btn{min-height:50px;padding:0 18px;border:none;border-radius:16px;font-size:14px;font-weight:800;cursor:pointer;transition:.2s ease;white-space:nowrap}
+.today-btn{color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-2));box-shadow:0 10px 24px rgba(59,130,246,.28)}
+.today-btn:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.clear-btn{color:var(--text);background:rgba(255,255,255,.05);border:1px solid var(--stroke)}
+.clear-btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.09)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px}
+.stat-card{position:relative;overflow:hidden;border-radius:22px;border:1px solid var(--stroke);background:var(--panel);box-shadow:var(--shadow);padding:20px 18px;transition:.25s ease;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.stat-card:hover{transform:translateY(-4px);border-color:rgba(59,130,246,.28)}
+.stat-card::before{content:"";position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--primary),var(--primary-2))}
+.stat-label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-2);margin-bottom:10px;font-weight:800}
+.stat-value{font-size:clamp(26px,3vw,34px);font-weight:800;color:#fff;letter-spacing:-.03em}
+.results-info{font-size:14px;color:var(--muted);margin-bottom:12px;padding-left:4px}
+.table-wrap{border:1px solid var(--stroke);border-radius:24px;overflow:hidden;overflow-x:auto;background:var(--panel-strong);box-shadow:var(--shadow);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:800;font-size:12px;color:var(--muted);padding:18px 16px;border-bottom:1px solid var(--stroke);background:rgba(255,255,255,.03);text-transform:uppercase;letter-spacing:.08em}
+td{padding:16px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--text);transition:.18s ease}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:.18s ease}
+tbody tr:hover td{background:rgba(59,130,246,.05)}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;background:var(--info-bg);color:#dbeafe;border:1px solid rgba(59,130,246,.22)}
+.sala-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;background:var(--success-bg);color:#c8f7d4;border:1px solid rgba(34,197,94,.22)}
+.empty{text-align:center;padding:42px 20px;color:var(--muted);font-size:15px}
+.pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.page-btns{display:flex;gap:8px;flex-wrap:wrap}
+.page-btn{padding:10px 14px;border:1px solid var(--stroke);border-radius:14px;background:rgba(255,255,255,.04);color:var(--text);font-size:13px;font-weight:800;cursor:pointer;transition:.2s ease}
+.page-btn:hover{background:rgba(255,255,255,.08);transform:translateY(-1px)}
+.page-btn.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;border-color:transparent;box-shadow:0 10px 22px rgba(59,130,246,.24)}
+.page-btn:disabled{opacity:.4;cursor:default;transform:none}
+::-webkit-scrollbar{height:10px;width:10px}
+::-webkit-scrollbar-track{background:rgba(255,255,255,.04);border-radius:999px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:999px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.24)}
+@media (max-width:1100px){.stats{grid-template-columns:repeat(2,1fr)}.search-bar{grid-template-columns:1fr 1fr}}
+@media (max-width:720px){body{padding:16px}.header{padding:22px 18px}.title{font-size:28px}.search-bar{grid-template-columns:1fr}.stats{grid-template-columns:1fr}th,td{padding:14px 12px}.pagination{flex-direction:column;align-items:stretch}.page-btns{justify-content:center}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2 class="sr-only">Consulta de salas por turma e data</h2>
+  <div class="header">
+    <div class="title">Gestão de Salas</div>
+    <div class="subtitle">Consulte turmas, datas e salas de forma rápida com um visual moderno e organizado.</div>
+  </div>
+
+  <div class="upload-area" onclick="document.getElementById('xlsxInput').click()">
+    <input type="file" id="xlsxInput" accept=".xlsx,.xls" onchange="handleUpload(event)">
+    <div class="upload-btn">📂 Atualizar planilha</div>
+    <div class="upload-label">Clique para carregar uma nova versão do Excel e atualizar os dados automaticamente</div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="searchTurma" placeholder="🔎 Pesquisar turma (ex: APB.ADM.119)..." oninput="onSearch()" autocomplete="off">
+    <input type="date" id="searchData" onchange="onSearch()">
+    <button class="today-btn" onclick="setToday()">📅 Hoje</button>
+    <button class="clear-btn" onclick="clearFilters()">✖ Limpar</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="stat-label">Registros totais</div><div class="stat-value" id="statTotal">0</div></div>
+    <div class="stat-card"><div class="stat-label">Turmas únicas</div><div class="stat-value" id="statTurmas">0</div></div>
+    <div class="stat-card"><div class="stat-label">Resultados</div><div class="stat-value" id="statResults">0</div></div>
+    <div class="stat-card"><div class="stat-label">Salas usadas</div><div class="stat-value" id="statSalas">0</div></div>
+  </div>
+
+  <div class="results-info" id="resultsInfo"></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Data</th><th>Dia</th><th>Turma</th><th>Sala</th></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+const DIAS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const PAGE_SIZE = 50;
+let allData = [];
+let filtered = [];
+let page = 1;
+
+const BUILT_IN = [{"data":"2026-01-12","turma":"APP.HML.003","sala":"603 Sala"},{"data":"2026-01-12","turma":"APP.LIB.001","sala":"605 Sala"},{"data":"2026-01-13","turma":"APP.HML.003","sala":"603 Sala"},{"data":"2026-01-13","turma":"APP.LIB.001","sala":"605 Sala"},{"data":"2026-01-14","turma":"APP.HML.003","sala":"603 Sala"},{"data":"2026-01-14","turma":"APP.LIB.001","sala":"605 Sala"},{"data":"2026-01-15","turma":"APP.HML.003","sala":"603 Sala"},{"data":"2026-01-15","turma":"APP.LIB.001","sala":"605 Sala"},{"data":"2026-01-16","turma":"APP.HML.003","sala":"603 Sala"},{"data":"2026-01-16","turma":"APP.LIB.001","sala":"605 Sala"},{"data":"2026-01-19","turma":"APP.HML.003","sala":"603 Sala"},{"data":"2026-01-19","turma":"APP.LIB.001","sala":"605 Sala"},{"data":"2026-01-20","turma":"APP.HML.003","sala":"603 Sala"},{"data":"2026-01-20","turma":"APP.LIB.001","sala":"605 Sala"},{"data":"2026-01-21","turma":"APP.HML.003","sala":"603 Sala"},{"data":"2026-01-21","turma":"APP.LIB.001","sala":"605 Sala"},{"data":"2026-01-22","turma":"APP.HML.003","sala":"603 Sala"},{"data":"2026-01-22","turma":"APP.LIB.001","sala":"605 Sala"},{"data":"2026-01-23","turma":"APP.HML.003","sala":"603 Sala"},{"data":"2026-01-23","turma":"APP.LIB.001","sala":"605 Sala"},{"data":"2026-01-26","turma":"APP.HML.003","sala":"603 Sala"},{"data":"2026-01-26","turma":"APP.LIB.002","sala":"608 Sala"},{"data":"2026-01-27","turma":"APP.LIB.002","sala":"608 Sala"},{"data":"2026-01-28","turma":"APP.LIB.002","sala":"608 Sala"},{"data":"2026-01-29","turma":"APP.LIB.002","sala":"608 Sala"},{"data":"2026-01-30","turma":"APP.LIB.002","sala":"608 Sala"},{"data":"2026-01-12","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-12","turma":"APP.LIE.016","sala":"601 Sala"},{"data":"2026-01-12","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-12","turma":"APP.LIB.003","sala":"605 Sala"},{"data":"2026-01-12","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-12","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-13","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-13","turma":"APP.LIE.016","sala":"601 Sala"},{"data":"2026-01-13","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-13","turma":"APP.LIB.003","sala":"605 Sala"},{"data":"2026-01-13","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-13","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-14","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-14","turma":"APP.LIE.016","sala":"601 Sala"},{"data":"2026-01-14","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-14","turma":"APP.LIB.003","sala":"605 Sala"},{"data":"2026-01-14","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-14","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-15","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-15","turma":"APP.LIE.016","sala":"601 Sala"},{"data":"2026-01-15","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-15","turma":"APP.LIB.003","sala":"605 Sala"},{"data":"2026-01-15","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-15","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-16","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-16","turma":"APP.LIE.016","sala":"601 Sala"},{"data":"2026-01-16","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-16","turma":"APP.LIB.003","sala":"605 Sala"},{"data":"2026-01-16","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-16","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-19","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-19","turma":"APP.LIE.016","sala":"601 Sala"},{"data":"2026-01-19","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-19","turma":"APP.LIB.003","sala":"605 Sala"},{"data":"2026-01-19","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-19","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-20","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-20","turma":"APP.LIE.016","sala":"601 Sala"},{"data":"2026-01-20","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-20","turma":"APP.LIB.003","sala":"605 Sala"},{"data":"2026-01-20","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-20","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-21","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-21","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-21","turma":"APP.LIB.003","sala":"605 Sala"},{"data":"2026-01-21","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-21","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-22","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-22","turma":"APP.LIE.017","sala":"601 Sala"},{"data":"2026-01-22","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-22","turma":"APP.LIB.003","sala":"605 Sala"},{"data":"2026-01-22","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-22","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-23","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-23","turma":"APP.LIE.017","sala":"601 Sala"},{"data":"2026-01-23","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-23","turma":"APP.LIB.003","sala":"605 Sala"},{"data":"2026-01-23","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-23","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-26","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-26","turma":"APP.LPY.002","sala":"505 Lab. Inf."},{"data":"2026-01-26","turma":"APP.LIE.017","sala":"601 Sala"},{"data":"2026-01-26","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-26","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-26","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-27","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-27","turma":"APP.LPY.002","sala":"505 Lab. Inf."},{"data":"2026-01-27","turma":"APP.LIE.017","sala":"601 Sala"},{"data":"2026-01-27","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-27","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-27","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-28","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-28","turma":"APP.LPY.002","sala":"505 Lab. Inf."},{"data":"2026-01-28","turma":"APP.LIE.017","sala":"601 Sala"},{"data":"2026-01-28","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-28","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-28","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-29","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-29","turma":"APP.LPY.002","sala":"505 Lab. Inf."},{"data":"2026-01-29","turma":"APP.LIE.017","sala":"601 Sala"},{"data":"2026-01-29","turma":"APP.AXE.018","sala":"603 Sala"},{"data":"2026-01-29","turma":"APP.GRH.008","sala":"608 Sala"},{"data":"2026-01-29","turma":"APP.ALE.039- 040","sala":"609 Sala"},{"data":"2026-01-30","turma":"APP.EPC.011","sala":"503 Lab. Inf."},{"data":"2026-01-30","turma":"APP.LPY.002","sala":"505 Lab. Inf."},{"data":"2026-01-30","turma":"APP.LIE.017","sala":"601 Sala"},{"data":"2026-01-05","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-06","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-07","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-08","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-09","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-12","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-13","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-14","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-15","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-16","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-19","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-20","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-21","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-22","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-23","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-26","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-27","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-28","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-29","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-01-30","turma":"APP.IHA.005","sala":"06 Sala"},{"data":"2026-02-02","turma":"APP.LIB.002","sala":"608 Sala"},{"data":"2026-02-03","turma":"APP.LIB.002","sala":"608 Sala"},{"data":"2026-02-04","turma":"APP.LIB.002","sala":"608 Sala"},{"data":"2026-02-05","turma":"APP.LIB.002","sala":"608 Sala"},{"data":"2026-02-06","turma":"APP.LIB.002","sala":"608 Sala"},{"data":"2026-02-09","turma":"APB.ADM.119","sala":"01 Sala"},{"data":"2026-02-09","turma":"APB.OPL.111","sala":"03 Sala"},{"data":"2026-02-09","turma":"NOVAMED","sala":"05 Sala"},{"data":"2026-02-09","turma":"APB.OPL.099","sala":"06 Sala"},{"data":"2026-02-09","turma":"APT.MEC.001","sala":"36B Lab."},{"data":"2026-02-09","turma":"APB.ADM.125","sala":"500 Lab. Inf."},{"data":"2026-02-09","turma":"APB.ADM.134","sala":"600/602 Sala"},{"data":"2026-02-09","turma":"APB.INI.006","sala":"601 Sala"},{"data":"2026-02-09","turma":"TEC.TRC.013","sala":"603 Sala"},{"data":"2026-02-09","turma":"TEC.TMC.010","sala":"605 Sala"},{"data":"2026-02-09","turma":"TEC.TRC.014","sala":"608 Sala"},{"data":"2026-02-09","turma":"TEC.TRC.011","sala":"609 Sala"},{"data":"2026-02-09","turma":"APB.ADM.144","sala":"701 Sala"},{"data":"2026-02-09","turma":"APB.OPM.016","sala":"702 Sala"},{"data":"2026-02-09","turma":"APB.OPL.118","sala":"703 Sala"},{"data":"2026-02-09","turma":"APB.AAC.009","sala":"706 Sala"},{"data":"2026-02-09","turma":"APB.ADM.115","sala":"707 Sala"},{"data":"2026-04-17","turma":"APB.ADM.146","sala":"05 Sala"},{"data":"2026-04-17","turma":"TEC.TRC.009/011","sala":"500 Lab. Inf."},{"data":"2026-04-17","turma":"APB.ABM.148/OPL121","sala":"503 Lab. Inf."},{"data":"2026-04-17","turma":"APB.OIM.003","sala":"507 Lab. Inf."},{"data":"2026-04-17","turma":"APB.ADM.133","sala":"600/602 Sala"},{"data":"2026-04-17","turma":"APT.MEC.001","sala":"601 Sala"},{"data":"2026-04-17","turma":"APB.ADM.152","sala":"605 Sala"},{"data":"2026-04-17","turma":"APB.ADM.153","sala":"606/604 Sala"},{"data":"2026-04-17","turma":"APB.ADM.148/OPL.121","sala":"607 Sala"},{"data":"2026-04-17","turma":"APB.ADM.152/OPL.127","sala":"608 Sala"},{"data":"2026-04-17","turma":"APB.TMC.006","sala":"609 Sala"},{"data":"2026-04-17","turma":"APB.OPL.119","sala":"701 Sala"},{"data":"2026-04-17","turma":"APB.ADM.139/ OPL.110","sala":"702 Sala"},{"data":"2026-04-17","turma":"APB.OPL.118","sala":"703 Sala"},{"data":"2026-04-17","turma":"APB.ADM.144","sala":"706 Sala"},{"data":"2026-05-01","turma":"APB.ADM.146","sala":"05 Sala"},{"data":"2026-05-01","turma":"APB.OIM.003","sala":"06 Sala"},{"data":"2026-05-01","turma":"TEC.TRC.009/011","sala":"500 Lab. Inf."},{"data":"2026-05-01","turma":"APB.ADM.133","sala":"600/602 Sala"},{"data":"2026-05-01","turma":"APT.MEC.001","sala":"601 Sala"},{"data":"2026-05-01","turma":"APB.ADM.153","sala":"606/604 Sala"},{"data":"2026-05-01","turma":"APB.TMC.006","sala":"609 Sala"},{"data":"2026-05-01","turma":"APB.OPL.119","sala":"701 Sala"},{"data":"2026-05-01","turma":"APB.ADM.139/ OPL.110","sala":"702 Sala"},{"data":"2026-05-01","turma":"APB.OPL.118","sala":"703 Sala"},{"data":"2026-05-01","turma":"APB.ADM.144","sala":"706 Sala"}];
+
+function parseXlsx(buffer){
+  const wb = XLSX.read(buffer,{type:'array',cellDates:true});
+  const records = [];
+  const monthSheets = wb.SheetNames.filter(n=>!n.trim().startsWith('Lista'));
+  monthSheets.forEach(name=>{
+    const ws = wb.Sheets[name];
+    const rows = XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+    if(!rows[0]) return;
+    const roomRow = rows[0];
+    const roomCols = {};
+    roomRow.forEach((r,i)=>{
+      if(r && String(r).trim() && String(r).trim()!=='Sala:') roomCols[i]=String(r).trim();
+    });
+    rows.slice(3).forEach(row=>{
+      if(!row[0]) return;
+      let d;
+      if(row[0] instanceof Date) d=row[0];
+      else { try{d=new Date(row[0]);}catch(e){return;} }
+      if(isNaN(d)) return;
+      const ds = d.toISOString().slice(0,10);
+      Object.entries(roomCols).forEach(([ci,sala])=>{
+        const cell = row[+ci];
+        if(cell && String(cell).trim()) records.push({data:ds,turma:String(cell).trim(),sala});
+      });
+    });
+  });
+  return records;
+}
+
+function loadData(records){
+  allData = records.sort((a,b)=>a.data.localeCompare(b.data));
+  document.getElementById('statTotal').textContent = allData.length.toLocaleString();
+  document.getElementById('statTurmas').textContent = new Set(allData.map(r=>r.turma)).size.toLocaleString();
+  onSearch();
+}
+
+function handleUpload(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const records = parseXlsx(new Uint8Array(e.target.result));
+      if(records.length===0){alert('Não foi possível ler os dados da planilha. Verifique o formato.');return;}
+      loadData(records);
+      document.querySelector('.upload-label').textContent = `Planilha carregada: ${file.name} (${records.length} registros)`;
+    } catch(err){ alert('Erro ao ler o arquivo: '+err.message); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function formatDate(ds){
+  const [y,m,d] = ds.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function getDia(ds){
+  const [y,m,d] = ds.split('-');
+  return DIAS[new Date(+y,+m-1,+d).getDay()];
+}
+
+function onSearch(){
+  const q = document.getElementById('searchTurma').value.trim().toUpperCase();
+  const dt = document.getElementById('searchData').value;
+  filtered = allData.filter(r=>{
+    const matchT = !q || r.turma.toUpperCase().includes(q);
+    const matchD = !dt || r.data === dt;
+    return matchT && matchD;
+  });
+  document.getElementById('statResults').textContent = filtered.length.toLocaleString();
+  document.getElementById('statSalas').textContent = new Set(filtered.map(r=>r.sala)).size.toLocaleString();
+  page = 1;
+  render();
+}
+
+function render(){
+  const start = (page-1)*PAGE_SIZE;
+  const slice = filtered.slice(start, start+PAGE_SIZE);
+  const tbody = document.getElementById('tableBody');
+  if(filtered.length===0){
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">Nenhum resultado encontrado para os filtros informados</td></tr>';
+  } else {
+    tbody.innerHTML = slice.map(r=>`
+      <tr>
+        <td>${formatDate(r.data)}</td>
+        <td>${getDia(r.data)}</td>
+        <td><span class="badge">${r.turma}</span></td>
+        <td><span class="sala-badge">${r.sala}</span></td>
+      </tr>`).join('');
+  }
+  const totalPages = Math.ceil(filtered.length/PAGE_SIZE);
+  const info = filtered.length===0 ? '' : `Mostrando ${start+1}–${Math.min(start+PAGE_SIZE,filtered.length)} de ${filtered.length.toLocaleString()} registros`;
+  document.getElementById('resultsInfo').textContent = info;
+  renderPagination(totalPages);
+}
+
+function renderPagination(total){
+  const el = document.getElementById('pagination');
+  if(total<=1){el.innerHTML='';return;}
+  const pages = [];
+  const range = 2;
+  for(let i=1;i<=total;i++){
+    if(i===1||i===total||Math.abs(i-page)<=range) pages.push(i);
+    else if(pages[pages.length-1]!=='…') pages.push('…');
+  }
+  el.innerHTML = `
+    <button class="page-btn" onclick="goPage(${page-1})" ${page===1?'disabled':''}>← Anterior</button>
+    <div class="page-btns">${pages.map(p=>p==='…'?`<span style="padding:5px 4px;color:var(--color-text-secondary)">…</span>`:`<button class="page-btn${p===page?' active':''}" onclick="goPage(${p})">${p}</button>`).join('')}</div>
+    <button class="page-btn" onclick="goPage(${page+1})" ${page===total?'disabled':''}>Próxima →</button>`;
+}
+
+function goPage(p){
+  const total = Math.ceil(filtered.length/PAGE_SIZE);
+  if(p<1||p>total) return;
+  page=p; render();
+}
+
+function setToday(){
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth()+1).padStart(2,'0');
+  const d = String(today.getDate()).padStart(2,'0');
+  document.getElementById('searchData').value = `${y}-${m}-${d}`;
+  onSearch();
+}
+
+function clearFilters(){
+  document.getElementById('searchTurma').value='';
+  document.getElementById('searchData').value='';
+  onSearch();
+}
+
+loadData(BUILT_IN);
+</script>
+
+</body>
+</html>
